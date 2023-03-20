@@ -6,7 +6,7 @@
 
 <h1><%= post.Title %></h1>
 <p>
-  <%= post.Content.substring(0,100) + "..." %>
-  <a href="/<%= post.Title %>">read more</a>
+  <%= post.content.substring(0,100) + "..." %>
+  <a href="/<%= post._id %>">read more</a>
 </p>
 <% }) %> <%- include("partials/footer") -%>

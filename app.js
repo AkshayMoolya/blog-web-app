@@ -3,7 +3,9 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
-var posts = [];
+const mongoose = require("mongoose");
+mongoose.connect("mongodb://127.0.0.1:27017/postDB");
+
 var _ = require("lodash");
 
 const homeStartingContent =
@@ -20,7 +22,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.get("/", function (req, res) {
-  res.render("home", { para: homeStartingContent, posts: posts });
+  Post.find({}).then(function (results) {
+    res.render("home", { para: homeStartingContent, posts: results });
+  });
 });
 
 app.get("/about", function (req, res) {
@@ -32,24 +36,27 @@ app.get("/contact", function (req, res) {
 app.get("/compose", function (req, res) {
   res.render("compose");
 });
+
+const postScheme = {
+  Title: String,
+  content: String,
+};
+const Post = mongoose.model("Post", postScheme);
+
 app.post("/compose", function (req, res) {
-  const post = {
+  const post = new Post({
     Title: req.body.postTitle,
-    Content: req.body.postBody,
-  };
-  posts.push(post);
+    content: req.body.postBody,
+  });
+  post.save();
   res.redirect("/");
 });
-app.get("/:poster", function (req, res) {
-  var postSon = _.lowerCase(req.params.poster);
-  posts.forEach(function (post) {
-    const LL = post.Title;
-    var rap = _.lowerCase(LL);
 
-    if (postSon === rap) {
-      res.render("post", { Title: post.Title, Content: post.Content });
-    }
-  });
+app.get("/:poster", function (req, res) {
+  const requestedPostId = req.params.poster;
+  Post.findOne({ _id: requestedPostId }).then(function(results){
+    res.render("post", { Title: results.Title, content: results.content });
+  })
 });
 
 app.listen(3000, function () {
